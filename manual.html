@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>나만의 뜨개 도안 생성기</title>
+    <title>나만의 뜨개 도안 생성기 - 직접</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -14,26 +14,19 @@
     <div class="controls">
         <div style="width: 100%;">
             <div class="tabs">
-                <a href="index.html" class="tab-btn active">이미지로 만들기</a>
+                <a href="index.html" class="tab-btn">이미지로 만들기</a>
                 <a href="text.html" class="tab-btn">글자로 만들기</a>
-                <a href="manual.html" class="tab-btn">직접 만들기</a>
+                <a href="manual.html" class="tab-btn active">직접 만들기</a>
             </div>
-        </div>
-
-        <!-- 이미지 입력 섹션 -->
-        <div class="control-group" style="flex: 2;">
-            <label>이미지 업로드</label>
-            <input type="file" id="upload-image" accept="image/*">
         </div>
 
         <!-- 공통 설정 -->
         <div class="control-group">
-            <label>가로 코 수 (Width)</label>
+            <label>가로 코 수</label>
             <input type="number" id="grid-width" value="30" min="5" max="100">
         </div>
-
         <div class="control-group">
-            <label>세로 코 수 (Height)</label>
+            <label>세로 코 수</label>
             <input type="number" id="grid-height" value="30" min="5" max="100">
         </div>
 
@@ -49,21 +42,18 @@
         <div class="control-group">
             <button class="secondary" onclick="loadProject()">프로젝트 불러오기</button>
         </div>
-        
-        <!-- 편집 도구 -->
         <div class="control-group">
             <button class="secondary" onclick="undo()">실행 취소</button>
         </div>
         <div class="control-group">
             <button class="secondary" id="eraser-btn" onclick="toggleEraser()">지우개</button>
         </div>
-
         <div class="control-group">
             <label>칠하기 색상</label>
-            <input type="color" id="paint-color" value="#ff6b6b" style="padding: 2px; height: 42px; width: 100%; border: 1px solid var(--border); border-radius: 5px; box-sizing: border-box;">
+            <input type="color" id="paint-color" value="#ff6b6b">
         </div>
         <div class="control-group" style="width: 100%;" id="palette-group">
-            <label>사용된 색상 (클릭하여 선택)</label>
+            <label>사용된 색상</label>
             <div id="palette-container" class="palette-container"></div>
             <label style="margin-top: 10px; display:block;">추가된 색상</label>
             <div id="added-palette-container" class="palette-container"></div>
@@ -71,7 +61,7 @@
     </div>
 
     <div id="pattern-container">
-        <p style="color: #999;">이미지를 업로드하고 '도안 생성'을 누르세요.</p>
+        <p style="color: #999;">가로/세로 코 수를 설정하고 '도안 생성'을 누르세요.</p>
     </div>
 </div>
 
@@ -80,16 +70,20 @@
     function runProcess() {
         const width = parseInt(document.getElementById('grid-width').value);
         const height = parseInt(document.getElementById('grid-height').value);
-        const fileInput = document.getElementById('upload-image');
-        if (!fileInput.files || !fileInput.files[0]) {
-            alert('이미지를 선택해주세요!');
-            return;
-        }
+
+        // 흰색 배경의 빈 캔버스 생성
+        const tempCanvas = document.createElement('canvas');
+        tempCanvas.width = width;
+        tempCanvas.height = height;
+        const ctx = tempCanvas.getContext('2d');
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, width, height);
+
         const img = new Image();
         img.onload = function() {
-            createPixelCanvas(img, gridWidth, gridHeight, 'image');
+            createPixelCanvas(img, width, height, 'manual');
         };
-        img.src = URL.createObjectURL(fileInput.files[0]);
+        img.src = tempCanvas.toDataURL();
     }
 </script>
 </body>
