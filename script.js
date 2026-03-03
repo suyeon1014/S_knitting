@@ -5,6 +5,8 @@ let historyStack = []; // 실행 취소 스택
 let isEraserMode = false; // 지우개 모드 상태
 let usedColorsSet = new Set(); // 초기 생성 시 사용된 색상
 let addedColorsSet = new Set(); // 사용자가 추가한 색상
+let isPainting = false; // 드래그 칠하기 상태
+let lastPaintedCell = { x: -1, y: -1 }; // 마지막으로 칠한 셀
 
 // --- 공통 기능 ---
 
@@ -290,52 +292,63 @@ function createPixelCanvas(sourceImage, gridWidth, gridHeight, mode, targetColor
     // UI 구성
     setupUI(displayCanvas, previewCanvas, sourceImage, mode);
 
-    // 이벤트 리스너: 클릭 (칠하기)
-    displayCanvas.addEventListener('click', function(event) {
-        handleCanvasInteraction(event, displayCanvas, gridWidth, gridHeight, cellSize, padding, 'click');
+    // 드래그 칠하기 이벤트 리스너
+    displayCanvas.addEventListener('mousedown', function(event) {
+        if (event.button !== 0) return; // 좌클릭만
+        isPainting = true;
+        saveState(); // 작업 시작 시 상태 저장
+
+        const { gridX, gridY } = getGridCoordinates(event, displayCanvas, gridWidth, gridHeight, cellSize, padding);
+        if (gridX === null) return;
+
+        paintCell(gridX, gridY);
+        lastPaintedCell = { x: gridX, y: gridY };
+        window.redraw();
     });
 
-    // 이벤트 리스너: 더블클릭 (지우기 - 투명)
+    displayCanvas.addEventListener('mousemove', function(event) {
+        if (!isPainting) return;
+        const { gridX, gridY } = getGridCoordinates(event, displayCanvas, gridWidth, gridHeight, cellSize, padding);
+        if (gridX === null || (gridX === lastPaintedCell.x && gridY === lastPaintedCell.y)) return;
+
+        paintCell(gridX, gridY);
+        lastPaintedCell = { x: gridX, y: gridY };
+        window.redraw();
+    });
+
+    displayCanvas.addEventListener('mouseup', () => { isPainting = false; lastPaintedCell = { x: -1, y: -1 }; });
+    displayCanvas.addEventListener('mouseleave', () => { isPainting = false; lastPaintedCell = { x: -1, y: -1 }; });
+
+    // 더블클릭 지우기
     displayCanvas.addEventListener('dblclick', function(event) {
-        handleCanvasInteraction(event, displayCanvas, gridWidth, gridHeight, cellSize, padding, 'dblclick');
+        const { gridX, gridY } = getGridCoordinates(event, displayCanvas, gridWidth, gridHeight, cellSize, padding);
+        if (gridX === null) return;
+        saveState();
+        offCtx.fillStyle = '#ffffff';
+        offCtx.fillRect(gridX, gridY, 1, 1);
+        window.redraw();
     });
 }
 
-function handleCanvasInteraction(event, canvas, gridWidth, gridHeight, cellSize, padding, type) {
+function getGridCoordinates(event, canvas, gridWidth, gridHeight, cellSize, padding) {
     const rect = canvas.getBoundingClientRect();
     const x = event.clientX - rect.left;
     const y = event.clientY - rect.top;
 
     if (x >= padding && x < padding + gridWidth * cellSize &&
         y >= padding && y < padding + gridHeight * cellSize) {
-        
         const gridX = Math.floor((x - padding) / cellSize);
         const gridY = Math.floor((y - padding) / cellSize);
-
-        // 상태 저장 (Undo용)
-        saveState();
-
-        if (type === 'dblclick') {
-            // 더블클릭: 투명하게 지우기 (흰색 배경이 보이게 됨)
-            // offCtx.clearRect(gridX, gridY, 1, 1); // 완전 투명
-            offCtx.fillStyle = '#ffffff'; // 흰색으로 칠하기 (뜨개 도안은 보통 흰 배경)
-            offCtx.fillRect(gridX, gridY, 1, 1);
-        } else {
-            // 클릭: 칠하기 또는 지우개 모드
-            if (isEraserMode) {
-                offCtx.fillStyle = '#ffffff';
-                offCtx.fillRect(gridX, gridY, 1, 1);
-            } else {
-                const paintColor = document.getElementById('paint-color').value;
-                offCtx.fillStyle = paintColor;
-                offCtx.fillRect(gridX, gridY, 1, 1);
-                
-                // 새로운 색상이면 팔레트에 추가
-                updateAddedPalette(paintColor);
-            }
-        }
-        window.redraw();
+        return { gridX, gridY };
     }
+    return { gridX: null, gridY: null };
+}
+
+function paintCell(gridX, gridY) {
+    const color = isEraserMode ? '#ffffff' : document.getElementById('paint-color').value;
+    offCtx.fillStyle = color;
+    offCtx.fillRect(gridX, gridY, 1, 1);
+    if (!isEraserMode) updateAddedPalette(color);
 }
 
 function processColors(mode, targetColorHex, w, h) {
