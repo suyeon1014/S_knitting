@@ -466,6 +466,7 @@ function setupUI(displayCanvas, previewCanvas, sourceImage, mode) {
     wrapper.style.alignItems = 'flex-start';
     wrapper.style.justifyContent = 'center';
     wrapper.style.flexWrap = 'wrap';
+    wrapper.style.width = '100%';
 
     const leftBox = document.createElement('div');
     leftBox.style.textAlign = 'center';
@@ -490,8 +491,18 @@ function setupUI(displayCanvas, previewCanvas, sourceImage, mode) {
 
     const rightBox = document.createElement('div');
     rightBox.style.textAlign = 'center';
+    rightBox.style.maxWidth = 'calc(100% - 40px)';
     rightBox.innerHTML = '<div style="font-weight:bold; margin-bottom:10px;">생성된 도안</div>';
-    rightBox.appendChild(displayCanvas);
+    
+    const scrollContainer = document.createElement('div');
+    scrollContainer.style.overflow = 'auto';
+    scrollContainer.style.maxWidth = '100%';
+    scrollContainer.style.maxHeight = '80vh';
+    scrollContainer.style.border = '1px solid #ddd';
+    scrollContainer.style.display = 'inline-block';
+    scrollContainer.appendChild(displayCanvas);
+
+    rightBox.appendChild(scrollContainer);
 
     wrapper.appendChild(leftBox);
     wrapper.appendChild(rightBox);

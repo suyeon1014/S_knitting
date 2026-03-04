@@ -54,20 +54,14 @@
         <div class="control-group">
             <button onclick="runProcess()">도안 생성</button>
         </div>
-        <div class="control-group">
-            <button class="secondary" onclick="downloadPattern()">다운로드</button>
+        <div class="control-group" style="display: flex; gap: 5px;">
+            <button class="secondary" onclick="downloadPattern()" style="flex: 1;">다운로드</button>
+            <button class="secondary" onclick="saveProject()" style="flex: 1;">저장</button>
+            <button class="secondary" onclick="loadProject()" style="flex: 1;">불러오기</button>
         </div>
-        <div class="control-group">
-            <button class="secondary" onclick="saveProject()">프로젝트 저장</button>
-        </div>
-        <div class="control-group">
-            <button class="secondary" onclick="loadProject()">프로젝트 불러오기</button>
-        </div>
-        <div class="control-group">
-            <button class="secondary" onclick="undo()">실행 취소</button>
-        </div>
-        <div class="control-group">
-            <button class="secondary" id="eraser-btn" onclick="toggleEraser()">지우개</button>
+        <div class="control-group" style="display: flex; gap: 5px;">
+            <button class="secondary" onclick="undo()" style="flex: 1;">실행 취소</button>
+            <button class="secondary" id="eraser-btn" onclick="toggleEraser()" style="flex: 1;">지우개</button>
         </div>
         <div class="control-group">
             <label>칠하기 색상</label>
